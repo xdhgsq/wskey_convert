@@ -61,17 +61,6 @@ else
 	echo -e "$yellow检测到${green}wskey_ck_white=$wskey_ck_white$white"
 fi
 
-
-#添加系统变量
-wskey_path=$(cat /etc/profile | grep -o wskey.sh | wc -l)
-if [[ "$wskey_path" == "0" ]]; then
-	echo "export wskey_file=$dir_file" >> /etc/profile
-	echo "export wskey=$dir_file/wskey.sh" >> /etc/profile
-	echo "export wskey_very=$dir_file/wskey_very.sh" >> /etc/profile
-	source /etc/profile
-fi
-
-
 task() {
 	cron_version="2.0"
 	if [ `grep -o "wskey的定时任务$cron_version" $cron_file |wc -l` == "0" ]; then
@@ -497,7 +486,6 @@ if_system() {
 		echo "export wskey=$dir_file/wskey.sh" >> /etc/profile
 		source /etc/profile
 	fi
-
 }
 
 run() {
@@ -511,7 +499,7 @@ if [[ -z $action1 ]]; then
 	wskey_Conversion
 else
 	case "$action1" in
-		addwskey|run|update_script)
+		addwskey|run|if_system|update_script)
 		$action1
 		;;
 		*)
