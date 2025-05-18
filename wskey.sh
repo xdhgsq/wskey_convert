@@ -123,7 +123,7 @@ wskey_Conversion() {
 			if [ ${wskey_program} == "js" ];then
 				run_cookie_result=$($node $dir_file/js/jd_wskey.js | grep "转换后的Cookie " | sed "s/转换后的Cookie //g")
 			elif [ ${wskey_program} == "py" ];then
-				run_cookie_result=$($python3 $dir_file/js/wskey.py | grep "转换后的Cookie " | sed "s/转换后的Cookie //g")
+				run_cookie_result=$($python3 $dir_file/js/wskey.py | sed "s/转换后的Cookie: //g")
 			else
 				echo "wskey_program值填写错误"
 				exit 0
