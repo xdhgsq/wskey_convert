@@ -46,27 +46,27 @@ weixin2=$(grep "weixin2=" $openwrt_script_config/jd_openwrt_script_config.txt | 
 
 #使用那种进行转换wskey（py js）
 if [ -z "$wskey_program" ];then
-	echo -e "${yellow}wskey_program=${green}py$white"
+	echo  "${yellow}wskey_program=${green}py$white"
 	wskey_program="py"
 else
-	echo -e "$yellow检测到${green}wskey_program=$wskey_program$white"
+	echo  "$yellow检测到${green}wskey_program=$wskey_program$white"
 fi
 
 
 #是否再wskey转换失败的时候删除jdcookie.js里的失效ｃｋ（会打乱你的排序，wskey恢复以后会自己添加）
 if [ -z "$ck_del" ];then
-	echo -e "$yellow${green}ck_del=no$white"
+	echo  "$yellow${green}ck_del=no$white"
 	ck_del="no"
 else
-	echo -e "$yellow检测到${green}ck_del=$ck_del$white"
+	echo  "$yellow检测到${green}ck_del=$ck_del$white"
 fi
 
 #wskey白名单，用于转换失效但不删jdcookie.js里的ｃｋ（格式：pin1@pin2）
 if [ -z "$wskey_ck_white" ];then
-	echo -e "$yellow${green}wskey_ck_white=""$white"
+	echo  "$yellow${green}wskey_ck_white=""$white"
 	wskey_ck_white=""
 else
-	echo -e "$yellow检测到${green}wskey_ck_white=$wskey_ck_white$white"
+	echo  "$yellow检测到${green}wskey_ck_white=$wskey_ck_white$white"
 fi
 
 task() {
@@ -104,7 +104,7 @@ wskey_Conversion() {
 	rm -rf /tmp/wskey_error_pin.txt
 
 	if [ ! `cat $dir_file/jdwskey.txt |grep -v "格式" | grep -v "#" |grep "wskey=" | wc -l` -ge "1" ];then
-		echo -e "$red$dir_file/jdwskey.txt 没有填写wskey$white"
+		echo  "$red$dir_file/jdwskey.txt 没有填写wskey$white"
 		exit 0
 	
 	fi
@@ -121,11 +121,11 @@ wskey_Conversion() {
 		wskey=$(echo "$wskcookie" | awk -F "wskey=" '{print $2}' | awk -F ";" '{print $1}')
 
 		if [ "${pin}" = "" ];then
-			echo -e "$pin$red用户名为空$white"
+			echo  "$pin$red用户名为空$white"
 		elif [ "${wskey}" = "" ];then
-			echo -e "$wskeyn$red wskey值为空$white"
+			echo  "$wskeyn$red wskey值为空$white"
 		else
-			echo -e "$yellow你一共有$wscookie_num个wskey，$white开始转换第$num个$green$pin$white的wskey"
+			echo  "$yellow你一共有$wscookie_num个wskey，$white开始转换第$num个$green$pin$white的wskey"
 			export WSCOOKIE="pin=${pin};wskey=${wskey};"
 			
 			if [ ${wskey_program} = "js" ];then
@@ -140,11 +140,11 @@ wskey_Conversion() {
 			pt_key=$(echo "$run_cookie_result" | awk -F "pt_key=" '{print $2}' | awk -F ";" '{print $1}')
 
 			if [ "$pt_pin" = "xxx" ];then
-				echo -e "转换$pin$red异常，请检测你的pin和wskey有没有填错$white"
+				echo  "转换$pin$red异常，请检测你的pin和wskey有没有填错$white"
 			elif [ "$pt_pin" = "******" ];then
-				echo -e "转换$pin$red异常，请检测你的pin和wskey有没有填错$white"
+				echo  "转换$pin$red异常，请检测你的pin和wskey有没有填错$white"
 			elif [ "$pt_key" = "" ];then
-				echo -e "$red转换出来的pt_key为空异常，跳过这个$white"
+				echo  "$red转换出来的pt_key为空异常，跳过这个$white"
 				you_remark=$(cat $dir_file/jdwskey.txt | grep "$pin" | awk -F "\/\/" '{print $2}')
 				if [ -z "$you_remark" ];then
 					you_remark="没有备注"
@@ -159,7 +159,7 @@ wskey_Conversion() {
 					else
 						ck_if=$(grep "$pin" $openwrt_script_config/jdCookie.js | wc -l )
 						if [ "1"  -ge "$ck_if" ];then
-							echo -e "$yellow先删除一下$openwrt_script_config/jdCookie.js里的$pin，后面正常了以后会添加回去$white"
+							echo  "$yellow先删除一下$openwrt_script_config/jdCookie.js里的$pin，后面正常了以后会添加回去$white"
 							echo ""
 							sed -i "/$pin/d" $openwrt_script_config/jdCookie.js
 						fi
@@ -173,7 +173,7 @@ wskey_Conversion() {
 				else
 					echo "pt_key=$pt_key;pt_pin=$pin;" >>/tmp/you_cookie.txt
 				fi
-				echo -e "第$num个$green$pin$white的wskey转换完成$white"
+				echo  "第$num个$green$pin$white的wskey转换完成$white"
 			fi
 		fi
 		
@@ -181,7 +181,7 @@ wskey_Conversion() {
 	done
 	wskey_push
 
-	echo -e "$yellow\n开始为你查找是否存在这个cookie，有就更新，没有就新增。。。$white\n"
+	echo  "$yellow\n开始为你查找是否存在这个cookie，有就更新，没有就新增。。。$white\n"
 	if_you_cookie=$(cat /tmp/you_cookie.txt | wc -l)
 	if [ $if_you_cookie = "1" ];then
 		you_cookie=$(cat /tmp/you_cookie.txt)
@@ -198,7 +198,7 @@ wskey_Conversion() {
 		while [ $if_you_cookie -ge $num ];do
 			clear
 			echo  "------------------------------------------------------------------------------"
-			echo -e "你一共输入了$yellow$if_you_cookie$white条cookie现在开始替换第$green$num$white条cookie"
+			echo  "你一共输入了$yellow$if_you_cookie$white条cookie现在开始替换第$green$num$white条cookie"
 			you_cookie=$(sed -n "$num p" /tmp/you_cookie.txt)
 			new_pt=$(echo $you_cookie)
 			pt_pin=$(echo $you_cookie | awk -F "pt_pin=" '{print $2}' | awk -F ";" '{print $1}')
@@ -207,15 +207,15 @@ wskey_Conversion() {
 			if [ `echo "$pt_pin" | wc -l` = "1"  ] && [ `echo "$pt_key" | wc -l` = "1" ];then
 				addcookie_replace
 			else
-				echo -e "$pt_pin $pt_key　$red异常$white"
+				echo  "$pt_pin $pt_key　$red异常$white"
 			fi
 			num=$(( $num + 1))
 		done
 
 	fi
-	echo -e "$green你一共有$wscookie_num个wskey，已经替换完成$white"
+	echo  "$green你一共有$wscookie_num个wskey，已经替换完成$white"
 	sleep 2
-	echo -e "$green开始更新并发文件夹$white"
+	echo  "$green开始更新并发文件夹$white"
 	sh /usr/share/jd_openwrt_script/JD_Script/jd.sh update
 }
 
@@ -238,14 +238,14 @@ wskey_push() {
 
 addcookie_replace(){
 	if [ `cat $openwrt_script_config/jdCookie.js | grep "$pt_pin" | wc -l` = "1" ];then
-		echo -e "$green检测到 $yellow${pt_pin}$white 已经存在，开始更新cookie。。$white\n"
+		echo  "$green检测到 $yellow${pt_pin}$white 已经存在，开始更新cookie。。$white\n"
 		old_pt=$(cat $openwrt_script_config/jdCookie.js | grep "$pt_pin" | sed -e "s/',//g" -e "s/'//g")
 		old_pt_key=$(cat $openwrt_script_config/jdCookie.js | grep "$pt_pin" | awk -F "pt_key=" '{print $2}' | awk -F ";" '{print $1}')
 		sed -i "s/$old_pt_key/$pt_key/g" $openwrt_script_config/jdCookie.js
-		echo -e "$green 旧cookie：$yellow${old_pt}$white\n\n$green更新为$white\n\n$green   新cookie：$yellow${new_pt}$white\n"
+		echo  "$green 旧cookie：$yellow${old_pt}$white\n\n$green更新为$white\n\n$green   新cookie：$yellow${new_pt}$white\n"
 		echo  "------------------------------------------------------------------------------"
 	else
-		echo -e "$green检测到 $yellow${pt_pin}$white 不存在，开始新增cookie。。$white\n"
+		echo  "$green检测到 $yellow${pt_pin}$white 不存在，开始新增cookie。。$white\n"
 		cookie_quantity=$( cat $openwrt_script_config/jdCookie.js | sed -e "s/pt_key=XXX;pt_pin=XXX//g" -e "s/pt_pin=(//g" -e "s/pt_key=xxx;pt_pin=xxx//g"| grep "pt_pin" | wc -l)
 		i=$(expr $cookie_quantity + 5)
 		you_remark=$(cat $dir_file/jdwskey.txt |grep "${pt_pin}"| awk -F ";" '{print $3}' | sed "s/\/\///g")
@@ -260,10 +260,10 @@ addcookie_replace(){
 		else
 			sed -i "$i a\  '$you_cookie\',$you_remark1" $openwrt_script_config/jdCookie.js
 		fi
-		echo -e "\n已将新cookie：$green${you_cookie}$white\n\n插入到$yellow$openwrt_script_config/jdCookie.js$white 第$i行\n"
+		echo  "\n已将新cookie：$green${you_cookie}$white\n\n插入到$yellow$openwrt_script_config/jdCookie.js$white 第$i行\n"
 		cookie_quantity1=$( cat $openwrt_script_config/jdCookie.js | sed -e "s/pt_key=XXX;pt_pin=XXX//g" -e "s/pt_pin=(//g" -e "s/pt_key=xxx;pt_pin=xxx//g"| grep "pt_pin" | wc -l)
 		echo  "------------------------------------------------------------------------------"
-		echo -e "$yellow你增加了账号：$green${pt_pin}$white$yellow 现在cookie一共有$cookie_quantity1个，具体以下：$white"
+		echo  "$yellow你增加了账号：$green${pt_pin}$white$yellow 现在cookie一共有$cookie_quantity1个，具体以下：$white"
 		cat $openwrt_script_config/jdCookie.js | sed -e "s/pt_key=XXX;pt_pin=XXX//g" -e "s/pt_pin=(//g" -e "s/pt_key=xxx;pt_pin=xxx//g"| grep "pt_pin" | sed -e "s/',//g" -e "s/'//g"
 		echo  "------------------------------------------------------------------------------"
 	fi
@@ -297,7 +297,7 @@ check_cooike() {
 
 addwskey() {
 	cat /tmp/jdck.txt > /tmp/jdck_wskey.txt
-	echo -e "${yellow}\n开始为你查找是否存在这个wskey，有就更新，没有就新增。。。${white}\n"
+	echo  "${yellow}\n开始为你查找是否存在这个wskey，有就更新，没有就新增。。。${white}\n"
 	sleep 2
 	if_jdck_wskey=$(cat /tmp/jdck_wskey.txt | wc -l)
 	if [ $if_jdck_wskey = "1" ];then
@@ -317,7 +317,7 @@ addwskey() {
 		while [ $if_jdck_wskey -ge $num ];do
 			clear
 			echo  "------------------------------------------------------------------------------"
-			echo -e "你一共输入了${yellow}$if_jdck_wskey${white}条wskey现在开始替换第${green}$num${white}条wskey"
+			echo  "你一共输入了${yellow}$if_jdck_wskey${white}条wskey现在开始替换第${green}$num${white}条wskey"
 			jdck_wskey=$(sed -n "$num p" /tmp/jdck_wskey.txt)
 			new_pt=$(echo $jdck_wskey)
 			pin=$(echo $jdck_wskey | awk -F "pin=" '{print $2}' | awk -F ";" '{print $1}')
@@ -328,7 +328,7 @@ addwskey() {
 				addwskey_replace
 				sleep 2
 			else
-				echo -e "$pin $wskey $you_remark　$red异常${white}"
+				echo  "$pin $wskey $you_remark　$red异常${white}"
 				sleep 2
 			fi
 			num=$(( $num + 1))
@@ -338,15 +338,15 @@ addwskey() {
 
 addwskey_replace(){
 	if [ `cat $dir_file/jdwskey.txt | grep "$pin;" | wc -l` = "1" ];then
-		echo -e "${green}检测到 ${yellow}${pin}${white} 已经存在，开始更新cookie。。${white}\n"
+		echo  "${green}检测到 ${yellow}${pin}${white} 已经存在，开始更新cookie。。${white}\n"
 		sleep 2
 		old_pt=$(cat $dir_file/jdwskey.txt | grep "$pin" | sed -e "s/',//g" -e "s/'//g")
 		old_pt_key=$(cat $dir_file/jdwskey.txt | grep "$pin" | awk -F "wskey=" '{print $2}' | awk -F ";" '{print $1}')
 		sed -i "s/$old_pt_key/$wskey/g" $dir_file/jdwskey.txt
-		echo -e "${green} 旧cookie：${yellow}${old_pt}${white}\n\n${green}更新为${white}\n\n${green}   新cookie：${yellow}${new_pt}${white}\n"
+		echo  "${green} 旧cookie：${yellow}${old_pt}${white}\n\n${green}更新为${white}\n\n${green}   新cookie：${yellow}${new_pt}${white}\n"
 		echo  "------------------------------------------------------------------------------"
 	else
-		echo -e "${green}检测到 ${yellow}${pin}${white} 不存在，开始新增cookie。。${white}\n"
+		echo  "${green}检测到 ${yellow}${pin}${white} 不存在，开始新增cookie。。${white}\n"
 		sleep 2
 		cookie_quantity=$( cat $dir_file/jdwskey.txt | wc -l)
 		i="$cookie_quantity"
@@ -355,10 +355,10 @@ addwskey_replace(){
 		else
 			sed -i "${i}a pin=${pin};wskey=${wskey};" $dir_file/jdwskey.txt
 		fi
-		echo -e "\n已将新cookie：${green}${jdck_wskey}${white}\n\n插入到${yellow}$dir_file/jdwskey.txt${white} 第$i行\n"
+		echo  "\n已将新cookie：${green}${jdck_wskey}${white}\n\n插入到${yellow}$dir_file/jdwskey.txt${white} 第$i行\n"
 		cookie_quantity1=$( cat $dir_file/jdwskey.txt | grep -v "pin=xxx;wskey=xxxx;" | grep "pin" | wc -l)
 		echo  "------------------------------------------------------------------------------"
-		echo -e "${yellow}你增加了账号：${green}${pin}${white}${yellow} 现在cookie一共有$cookie_quantity1个，具体以下：${white}"
+		echo  "${yellow}你增加了账号：${green}${pin}${white}${yellow} 现在cookie一共有$cookie_quantity1个，具体以下：${white}"
 		cat $dir_file/jdwskey.txt | grep -v "pin=xxx;wskey=xxxx;"
 		echo  "------------------------------------------------------------------------------"
 	fi
@@ -387,7 +387,7 @@ case "$push_if" in
 			weixin_push
 		;;
 		*)
-			echo -e "$red填写错误，不进行推送$white"
+			echo  "$red填写错误，不进行推送$white"
 		;;
 	esac
 
@@ -398,13 +398,13 @@ server_push() {
 if [ ! $SCKEY ];then
 	echo "没找到Server酱key不做操作"
 else
-	echo -e "$green server酱开始推送$title$white"
+	echo  "$green server酱开始推送$title$white"
 	curl -s "http://sc.ftqq.com/$SCKEY.send?text=$title++`date +%Y-%m-%d`++`date +%H:%M`" -d "&desp=$server_content" >/dev/null 2>&1
 
 	if [ $? -eq 0 ]; then
-		echo -e "$green server酱推送完成$white"
+		echo  "$green server酱推送完成$white"
 	else
-		echo -e "$red server酱推送失败。请检查报错代码$title$white"
+		echo  "$red server酱推送失败。请检查报错代码$title$white"
 	fi
 fi
 
@@ -458,24 +458,24 @@ if [ ! $media_id ];then
 else
 	msg_body="{\"touser\":\"$touser\",\"agentid\":$agentid,\"msgtype\":\"mpnews\",\"mpnews\":{\"articles\":[{\"title\":\"$title\",\"thumb_media_id\":\"$media_id\",\"content\":\"$weixin_content\",\"digest\":\"$weixin_desp\"}]}}"
 fi
-	echo -e "$green 企业微信开始推送$title$white"
+	echo  "$green 企业微信开始推送$title$white"
 	curl -s "https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=$access_token" -d "$msg_body"
 
 	if [ $? -eq 0 ]; then
-		echo -e "$green 企业微信推送成功$title$white"
+		echo  "$green 企业微信推送成功$title$white"
 	else
-		echo -e "$red 企业微信推送失败。请检查报错代码$title$white"
+		echo  "$red 企业微信推送失败。请检查报错代码$title$white"
 	fi
 
 }
 
 
 update_script() {
-	echo -e "$green update_script $white"
+	echo  "$green update_script $white"
 	cd $dir_file
 	git fetch --all
 	git reset --hard origin/main
-	echo -e "$green update_script$white"
+	echo  "$green update_script$white"
 }
 
 
