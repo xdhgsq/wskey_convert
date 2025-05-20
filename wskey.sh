@@ -10,13 +10,21 @@ Source="$0"
 while [ -h "$Source"  ]; do
     dir_file="$( cd -P "$( dirname "$Source"  )" && pwd  )"
     Source="$(readlink "$Source")"
-    [[ $Source != /*  ]] && Source="$dir_file/$Source"
+    [ $Source != /*  ] && Source="$dir_file/$Source"
 done
 dir_file="$( cd -P "$( dirname "$Source"  )" && pwd  )"
 openwrt_script_config="/usr/share/jd_openwrt_script/script_config"
 node="/usr/bin/node"
 python3="/usr/bin/python3"
-cron_file="/etc/crontabs/root"
+
+uname_if=$(cat /etc/profile | grep -o Ubuntu)
+
+if [ "$uname_if" = "Ubuntu" ];then
+	echo "当前环境为ubuntu"
+	cron_file="/etc/crontab"
+else
+	cron_file="/etc/crontabs/root"
+fi
 
 red="\033[31m"
 green="\033[32m"
@@ -63,7 +71,7 @@ fi
 
 task() {
 	cron_version="2.0"
-	if [ `grep -o "wskey的定时任务$cron_version" $cron_file |wc -l` == "0" ]; then
+	if [ `grep -o "wskey的定时任务$cron_version" $cron_file |wc -l` = "0" ]; then
 		echo "不存在计划任务开始设置"
 		task_delete
 		task_add
@@ -76,7 +84,7 @@ task() {
 
 
 task_add() {
-cat >>/etc/crontabs/root <<EOF
+cat >>$cron_file <<EOF
 #**********这里是wskey的定时任务$cron_version版本#120#**********#
 15 3,14 * * * $dir_file/wskey.sh run >/tmp/wskey.log 2>&1 #3点,14点15分执行全部脚本#120#
 15 22 * * * $dir_file/wskey.sh  update_script >/tmp/wskey_update_script.log 2>&1 #21点15分更新脚本#120#
@@ -87,7 +95,7 @@ EOF
 }
 
 task_delete() {
-        sed -i '/#120#/d' /etc/crontabs/root >/dev/null 2>&1
+        sed -i '/#120#/d' $cron_file >/dev/null 2>&1
 }
 
 wskey_Conversion() {
@@ -112,17 +120,17 @@ wskey_Conversion() {
 		pin=$(echo "$wskcookie" | awk -F "pin=" '{print $2}' | awk -F ";" '{print $1}')
 		wskey=$(echo "$wskcookie" | awk -F "wskey=" '{print $2}' | awk -F ";" '{print $1}')
 
-		if [ "${pin}" == "" ];then
+		if [ "${pin}" = "" ];then
 			echo -e "$pin$red用户名为空$white"
-		elif [ "${wskey}" == "" ];then
+		elif [ "${wskey}" = "" ];then
 			echo -e "$wskeyn$red wskey值为空$white"
 		else
 			echo -e "$yellow你一共有$wscookie_num个wskey，$white开始转换第$num个$green$pin$white的wskey"
 			export WSCOOKIE="pin=${pin};wskey=${wskey};"
 			
-			if [ ${wskey_program} == "js" ];then
+			if [ ${wskey_program} = "js" ];then
 				run_cookie_result=$($node $dir_file/js/jd_wskey.js | grep "转换后的Cookie " | sed "s/转换后的Cookie //g")
-			elif [ ${wskey_program} == "py" ];then
+			elif [ ${wskey_program} = "py" ];then
 				run_cookie_result=$($python3 $dir_file/js/wskey.py | sed "s/转换后的Cookie: //g")
 			else
 				echo "wskey_program值填写错误"
@@ -131,11 +139,11 @@ wskey_Conversion() {
 			pt_pin=$(echo "$run_cookie_result" | awk -F "pt_pin=" '{print $2}' | awk -F ";" '{print $1}')
 			pt_key=$(echo "$run_cookie_result" | awk -F "pt_key=" '{print $2}' | awk -F ";" '{print $1}')
 
-			if [ "$pt_pin" == "xxx" ];then
+			if [ "$pt_pin" = "xxx" ];then
 				echo -e "转换$pin$red异常，请检测你的pin和wskey有没有填错$white"
-			elif [ "$pt_pin" == "******" ];then
+			elif [ "$pt_pin" = "******" ];then
 				echo -e "转换$pin$red异常，请检测你的pin和wskey有没有填错$white"
-			elif [ "$pt_key" == "" ];then
+			elif [ "$pt_key" = "" ];then
 				echo -e "$red转换出来的pt_key为空异常，跳过这个$white"
 				you_remark=$(cat $dir_file/jdwskey.txt | grep "$pin" | awk -F "\/\/" '{print $2}')
 				if [ -z "$you_remark" ];then
@@ -144,9 +152,9 @@ wskey_Conversion() {
 				echo "$pin $you_remark$wrap" >>/tmp/wskey_error_pin.txt
 
 				#删除转换过期ｃｋ
-				if [ "$ck_del" == "yes" ];then
+				if [ "$ck_del" = "yes" ];then
 					wskey_ck_white_if=$(echo "$wskey_ck_white" | grep -o "$pin" | wc -l)
-					if [ $wskey_ck_white_if == "1" ];then
+					if [ $wskey_ck_white_if = "1" ];then
 						echo "白名单内ck，不进行删除"
 					else
 						ck_if=$(grep "$pin" $openwrt_script_config/jdCookie.js | wc -l )
@@ -160,7 +168,7 @@ wskey_Conversion() {
 					echo "wskey转换失败，不删除jdCookie.js里的$pin"
 				fi
 			else
-				if [ "$pin" == "$pt_pin" ];then
+				if [ "$pin" = "$pt_pin" ];then
 					echo "$run_cookie_result" >>/tmp/you_cookie.txt
 				else
 					echo "pt_key=$pt_key;pt_pin=$pin;" >>/tmp/you_cookie.txt
@@ -175,12 +183,12 @@ wskey_Conversion() {
 
 	echo -e "$yellow\n开始为你查找是否存在这个cookie，有就更新，没有就新增。。。$white\n"
 	if_you_cookie=$(cat /tmp/you_cookie.txt | wc -l)
-	if [ $if_you_cookie == "1" ];then
+	if [ $if_you_cookie = "1" ];then
 		you_cookie=$(cat /tmp/you_cookie.txt)
 		new_pt=$(echo $you_cookie)
 		pt_pin=$(echo $you_cookie | awk -F "pt_pin=" '{print $2}' | awk -F ";" '{print $1}')
 		pt_key=$(echo $you_cookie | awk -F "pt_key=" '{print $2}' | awk -F ";" '{print $1}')
-		if [ `echo "$pt_pin" | wc -l` == "1"  ] && [ `echo "$pt_key" | wc -l` == "1" ];then
+		if [ `echo "$pt_pin" | wc -l` = "1"  ] && [ `echo "$pt_key" | wc -l` = "1" ];then
 			addcookie_replace
 		else
 			echo "$pt_pin $pt_key　$red异常$white"
@@ -196,7 +204,7 @@ wskey_Conversion() {
 			pt_pin=$(echo $you_cookie | awk -F "pt_pin=" '{print $2}' | awk -F ";" '{print $1}')
 			pt_key=$(echo $you_cookie | awk -F "pt_key=" '{print $2}' | awk -F ";" '{print $1}')
 
-			if [ `echo "$pt_pin" | wc -l` == "1"  ] && [ `echo "$pt_key" | wc -l` == "1" ];then
+			if [ `echo "$pt_pin" | wc -l` = "1"  ] && [ `echo "$pt_key" | wc -l` = "1" ];then
 				addcookie_replace
 			else
 				echo -e "$pt_pin $pt_key　$red异常$white"
@@ -229,7 +237,7 @@ wskey_push() {
 
 
 addcookie_replace(){
-	if [ `cat $openwrt_script_config/jdCookie.js | grep "$pt_pin" | wc -l` == "1" ];then
+	if [ `cat $openwrt_script_config/jdCookie.js | grep "$pt_pin" | wc -l` = "1" ];then
 		echo -e "$green检测到 $yellow${pt_pin}$white 已经存在，开始更新cookie。。$white\n"
 		old_pt=$(cat $openwrt_script_config/jdCookie.js | grep "$pt_pin" | sed -e "s/',//g" -e "s/'//g")
 		old_pt_key=$(cat $openwrt_script_config/jdCookie.js | grep "$pt_pin" | awk -F "pt_key=" '{print $2}' | awk -F ";" '{print $1}')
@@ -247,7 +255,7 @@ addcookie_replace(){
 			you_remark1="\/\/$you_remark"
 		fi
 		
-		if [ $i == "5" ];then
+		if [ $i = "5" ];then
 			sed -i "5a \  '$you_cookie\',$you_remark1" $openwrt_script_config/jdCookie.js
 		else
 			sed -i "$i a\  '$you_cookie\',$you_remark1" $openwrt_script_config/jdCookie.js
@@ -275,7 +283,7 @@ check_cooike() {
 	sed -i "1i\备注      Cookie             添加时间      预计到期时间(不保证百分百准确)" $openwrt_script_config/check_cookie.txt
 	Current_date=$(date +%Y-%m-%d)
 	Current_date_m=$(echo $Current_date | awk -F "-" '{print $2}')
-	if [ "$Current_date_m" == "12"  ];then
+	if [ "$Current_date_m" = "12"  ];then
 		Expiration_date=$(date +%Y-01-%d)
 	else
 		m=$(expr $Current_date_m + 1)
@@ -283,7 +291,7 @@ check_cooike() {
 		#$这个不要改动，没有写错
 	fi
 	sed -i "/$pt_pin/d" $openwrt_script_config/check_cookie.txt
-	remark=$(grep "$pt_pin" $openwrt_script_config/jdCookie.js | awk -F "," '{print $2}' | sed "s/\/\///g" | sed 's/[[:space:]]//g')
+	remark=$(grep "$pt_pin" $openwrt_script_config/jdCookie.js | awk -F "," '{print $2}' | sed "s/\/\///g" | sed 's/[:space:]//g')
 	echo "$remark    $pt_pin    $Current_date    $Expiration_date" >> $openwrt_script_config/check_cookie.txt
 }
 
@@ -292,13 +300,13 @@ addwskey() {
 	echo -e "${yellow}\n开始为你查找是否存在这个wskey，有就更新，没有就新增。。。${white}\n"
 	sleep 2
 	if_jdck_wskey=$(cat /tmp/jdck_wskey.txt | wc -l)
-	if [ $if_jdck_wskey == "1" ];then
+	if [ $if_jdck_wskey = "1" ];then
 		jdck_wskey=$(cat /tmp/jdck_wskey.txt)
 		new_pt=$(echo $jdck_wskey)
 		pin=$(echo $jdck_wskey | awk -F "pin=" '{print $2}' | awk -F ";" '{print $1}')
 		wskey=$(echo $jdck_wskey | awk -F "wskey=" '{print $2}' | awk -F ";" '{print $1}')
 		you_remark=$(echo $jdck_wskey | awk -F "\/\/" '{print $2}')
-		if [ `echo "$pin" | wc -l` == "1"  ] && [ `echo "$wskey" | wc -l` == "1" ];then
+		if [ `echo "$pin" | wc -l` = "1"  ] && [ `echo "$wskey" | wc -l` = "1" ];then
 			addwskey_replace
 		else
 			echo "$pin $wskey　$you_remark $red异常${white}"
@@ -316,7 +324,7 @@ addwskey() {
 			wskey=$(echo $jdck_wskey | awk -F "wskey=" '{print $2}' | awk -F ";" '{print $1}')
 			you_remark=$(echo $jdck_wskey | awk -F "\/\/" '{print $2}')
 
-			if [ `echo "$pin" | wc -l` == "1"  ] && [ `echo "$wskey" | wc -l` == "1" ];then
+			if [ `echo "$pin" | wc -l` = "1"  ] && [ `echo "$wskey" | wc -l` = "1" ];then
 				addwskey_replace
 				sleep 2
 			else
@@ -329,7 +337,7 @@ addwskey() {
 }
 
 addwskey_replace(){
-	if [ `cat $dir_file/jdwskey.txt | grep "$pin;" | wc -l` == "1" ];then
+	if [ `cat $dir_file/jdwskey.txt | grep "$pin;" | wc -l` = "1" ];then
 		echo -e "${green}检测到 ${yellow}${pin}${white} 已经存在，开始更新cookie。。${white}\n"
 		sleep 2
 		old_pt=$(cat $dir_file/jdwskey.txt | grep "$pin" | sed -e "s/',//g" -e "s/'//g")
@@ -342,7 +350,7 @@ addwskey_replace(){
 		sleep 2
 		cookie_quantity=$( cat $dir_file/jdwskey.txt | wc -l)
 		i="$cookie_quantity"
-		if [ $i == "5" ];then
+		if [ $i = "5" ];then
 			sed -i "5a pin=${pin};wskey=${wskey};" $dir_file/jdwskey.txt
 		else
 			sed -i "${i}a pin=${pin};wskey=${wskey};" $dir_file/jdwskey.txt
@@ -393,7 +401,7 @@ else
 	echo -e "$green server酱开始推送$title$white"
 	curl -s "http://sc.ftqq.com/$SCKEY.send?text=$title++`date +%Y-%m-%d`++`date +%H:%M`" -d "&desp=$server_content" >/dev/null 2>&1
 
-	if [[ $? -eq 0 ]]; then
+	if [ $? -eq 0 ]; then
 		echo -e "$green server酱推送完成$white"
 	else
 		echo -e "$red server酱推送失败。请检查报错代码$title$white"
@@ -405,7 +413,7 @@ fi
 weixin_push() {
 current_time=$(date +%s)
 expireTime="7200"
-if [ $push_if == "3" ];then
+if [ $push_if = "3" ];then
 	weixinkey=$(grep "weixin2" $openwrt_script_config/jd_openwrt_script_config.txt | awk -F "'" '{print $2}')
 else
 	weixinkey=$(grep "let QYWX_AM" $openwrt_script_config/sendNotify.js | awk -F "'" '{print $2}')
@@ -453,7 +461,7 @@ fi
 	echo -e "$green 企业微信开始推送$title$white"
 	curl -s "https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=$access_token" -d "$msg_body"
 
-	if [[ $? -eq 0 ]]; then
+	if [ $? -eq 0 ]; then
 		echo -e "$green 企业微信推送成功$title$white"
 	else
 		echo -e "$red 企业微信推送失败。请检查报错代码$title$white"
@@ -481,7 +489,7 @@ if_system() {
 
 	#添加系统变量
 	wskey_path=$(cat /etc/profile | grep -o wskey.sh | wc -l)
-	if [[ "$wskey_path" == "0" ]]; then
+	if [ "$wskey_path" = "0" ]; then
 		echo "export wskey_file=$dir_file" >> /etc/profile
 		echo "export wskey=$dir_file/wskey.sh" >> /etc/profile
 		source /etc/profile
@@ -495,7 +503,7 @@ run() {
 
 if_system
 action1="$1"
-if [[ -z $action1 ]]; then
+if [ -z $action1 ]; then
 	wskey_Conversion
 else
 	case "$action1" in
