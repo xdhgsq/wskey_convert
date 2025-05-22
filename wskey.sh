@@ -23,7 +23,7 @@ fi
 
 if [ "$uname_if" = "Ubuntu" ];then
 	echo "当前环境为ubuntu"
-	cron_file="/etc/crontab"
+	cron_file="/etc/cron.d/jd-cron"
 else
 	cron_file="/etc/crontabs/root"
 fi
