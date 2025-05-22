@@ -17,7 +17,9 @@ openwrt_script_config="/usr/share/jd_openwrt_script/script_config"
 node="/usr/bin/node"
 python3="/usr/bin/python3"
 
-uname_if=$(cat /etc/profile | grep -o Ubuntu)
+if [ -z $uname_if ];then
+	uname_if=$(cat /etc/profile | grep -o Ubuntu |sort -u)
+fi
 
 if [ "$uname_if" = "Ubuntu" ];then
 	echo "当前环境为ubuntu"
@@ -70,7 +72,7 @@ else
 fi
 
 task() {
-	cron_version="2.0"
+	cron_version="2.1"
 	if [ `grep -o "wskey的定时任务$cron_version" $cron_file |wc -l` = "0" ]; then
 		echo "不存在计划任务开始设置"
 		task_delete
@@ -86,8 +88,8 @@ task() {
 task_add() {
 cat >>$cron_file <<EOF
 #**********这里是wskey的定时任务$cron_version版本#120#**********#
-15 3,14 * * * $dir_file/wskey.sh run >/tmp/wskey.log 2>&1 #3点,14点15分执行全部脚本#120#
-15 22 * * * $dir_file/wskey.sh  update_script >/tmp/wskey_update_script.log 2>&1 #21点15分更新脚本#120#
+15 3,14 * * * root $dir_file/wskey.sh run >/tmp/wskey.log 2>&1 #3点,14点15分执行全部脚本#120#
+15 22 * * * root $dir_file/wskey.sh  update_script >/tmp/wskey_update_script.log 2>&1 #21点15分更新脚本#120#
 #**********这里是wskey的定时任务$cron_version版本#120#**********#
 EOF
 	/etc/init.d/cron restart
