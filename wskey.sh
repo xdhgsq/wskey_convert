@@ -26,7 +26,7 @@ if [ "$uname_if" = "Ubuntu" ];then
 	cron_file="/etc/cron.d/jd-cron"
 	cron_user="root"
 else
-	cron_file="/etc/crontabs/$cron_user"
+	cron_file="/etc/crontabs/root"
 	cron_user=""
 fi
 
