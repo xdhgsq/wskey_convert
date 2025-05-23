@@ -24,8 +24,10 @@ fi
 if [ "$uname_if" = "Ubuntu" ];then
 	echo "当前环境为ubuntu"
 	cron_file="/etc/cron.d/jd-cron"
+	cron_user="root"
 else
-	cron_file="/etc/crontabs/root"
+	cron_file="/etc/crontabs/$cron_user"
+	cron_user=""
 fi
 
 red="\033[31m"
@@ -72,7 +74,7 @@ else
 fi
 
 task() {
-	cron_version="2.1"
+	cron_version="2.2"
 	if [ `grep -o "wskey的定时任务$cron_version" $cron_file |wc -l` = "0" ]; then
 		echo "不存在计划任务开始设置"
 		task_delete
@@ -88,8 +90,8 @@ task() {
 task_add() {
 cat >>$cron_file <<EOF
 #**********这里是wskey的定时任务$cron_version版本#120#**********#
-15 3,14 * * * root $dir_file/wskey.sh run >/tmp/wskey.log 2>&1 #3点,14点15分执行全部脚本#120#
-15 22 * * * root $dir_file/wskey.sh  update_script >/tmp/wskey_update_script.log 2>&1 #21点15分更新脚本#120#
+15 3,14 * * * $cron_user $dir_file/wskey.sh run >/tmp/wskey.log 2>&1 #3点,14点15分执行全部脚本#120#
+15 22 * * * $cron_user $dir_file/wskey.sh  update_script >/tmp/wskey_update_script.log 2>&1 #21点15分更新脚本#120#
 #**********这里是wskey的定时任务$cron_version版本#120#**********#
 EOF
 	/etc/init.d/cron restart
